@@ -25,6 +25,7 @@ This app now persists shared task data in a local SQLite database at `data/aqua-
 - Data is no longer kept only in the browser.
 - Multiple open clients stay almost in real-time sync with short polling.
 - The active logged-in user selection remains local per browser.
+- On Vercel, SQLite runs under `/tmp/aqua-control.sqlite` (ephemeral per runtime instance).
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

@@ -4,12 +4,7 @@ import Database from "better-sqlite3";
 import { DEFAULT_TANKS, DEFAULT_TASKS, DEFAULT_USERS } from "@/lib/defaults";
 import { CheckEntry, SharedState, Task, Tank, User } from "@/lib/types";
 
-const DATA_DIRECTORY = path.join(process.cwd(), "data");
-const DATABASE_PATH = path.join(DATA_DIRECTORY, "aqua-control.sqlite");
-
-fs.mkdirSync(DATA_DIRECTORY, { recursive: true });
-
-const database = new Database(DATABASE_PATH);
+const database = createDatabase();
 
 database.pragma("journal_mode = WAL");
 database.pragma("foreign_keys = ON");
@@ -54,6 +49,44 @@ database.exec(`
 `);
 
 seedDatabaseIfNeeded();
+
+function createDatabase(): Database.Database {
+  const resolvedPath = resolveDatabasePath();
+
+  try {
+    ensureParentDirectory(resolvedPath);
+    return new Database(resolvedPath);
+  } catch (error) {
+    console.error(
+      `[aqua-control] Failed to open SQLite at "${resolvedPath}". Falling back to in-memory database.`,
+      error
+    );
+    return new Database(":memory:");
+  }
+}
+
+function resolveDatabasePath(): string {
+  const configuredPath = process.env.AQUA_DB_PATH?.trim();
+  if (configuredPath) {
+    return configuredPath;
+  }
+
+  const isVercel = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
+  if (isVercel) {
+    // Vercel runtime only allows writing under /tmp.
+    return path.join("/tmp", "aqua-control", "aqua-control.sqlite");
+  }
+
+  return path.join(process.cwd(), "data", "aqua-control.sqlite");
+}
+
+function ensureParentDirectory(databasePath: string): void {
+  if (databasePath === ":memory:") {
+    return;
+  }
+
+  fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+}
 
 interface TaskRow {
   id: string;
