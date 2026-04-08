@@ -67,8 +67,12 @@ export function updateTank(
   });
 }
 
-export function clearHistory(): Promise<SharedState> {
-  return requestSharedState("/api/entries", {
+export function clearHistory(tankId?: string): Promise<SharedState> {
+  const url = tankId
+    ? `/api/entries?tankId=${encodeURIComponent(tankId)}`
+    : "/api/entries";
+
+  return requestSharedState(url, {
     method: "DELETE",
   });
 }

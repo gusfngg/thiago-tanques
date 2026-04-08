@@ -9,14 +9,33 @@ interface Props {
   tasks: Task[];
   entries: CheckEntry[];
   onCheck: (taskId: string, value?: string, notes?: string) => void;
+  onClearHistory: () => Promise<void>;
 }
 
-export default function TankCard({ tank, tasks, entries, onCheck }: Props) {
+export default function TankCard({ tank, tasks, entries, onCheck, onClearHistory }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const doneTasks = tasks.filter((t) => isTaskDoneToday(entries, tank.id, t.id));
   const progress = tasks.length > 0 ? Math.round((doneTasks.length / tasks.length) * 100) : 0;
   const allDone = doneTasks.length === tasks.length;
+
+  const handleClearTankHistory = async () => {
+    if (
+      !confirm(
+        `Limpar checklist de hoje apenas do ${tank.name}? O histórico de outros tanques e outros dias será mantido.`
+      )
+    ) {
+      return;
+    }
+
+    setClearing(true);
+    try {
+      await onClearHistory();
+    } finally {
+      setClearing(false);
+    }
+  };
 
   return (
     <div
@@ -84,6 +103,15 @@ export default function TankCard({ tank, tasks, entries, onCheck }: Props) {
               />
             );
           })}
+          <div className="px-4 py-2.5 bg-slate-50/70">
+            <button
+              onClick={() => void handleClearTankHistory()}
+              disabled={clearing || entries.length === 0}
+              className="w-full text-xs font-semibold text-rose-600 py-2 rounded-lg border border-rose-200 bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-rose-50 transition-colors"
+            >
+              {clearing ? "Limpando..." : "Limpar Checklist de Hoje deste Tanque"}
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -1,4 +1,9 @@
-import { clearAllEntries, getSharedState, saveEntry } from "@/lib/server/db";
+import {
+  clearTodayEntries,
+  clearTodayEntriesByTank,
+  getSharedState,
+  saveEntry,
+} from "@/lib/server/db";
 import { CheckEntry } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -70,14 +75,27 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
   try {
-    const state = clearAllEntries();
+    const { searchParams } = new URL(request.url);
+    const tankId = searchParams.get("tankId");
+
+    if (tankId) {
+      const hasTank = getSharedState().tanks.some((tank) => tank.id === tankId);
+      if (!hasTank) {
+        return Response.json({ error: "Tanque não encontrado." }, { status: 400 });
+      }
+
+      const state = clearTodayEntriesByTank(tankId);
+      return Response.json({ state });
+    }
+
+    const state = clearTodayEntries();
     return Response.json({ state });
   } catch (error) {
     console.error("DELETE /api/entries failed", error);
     return Response.json(
-      { error: "Falha ao limpar o histórico de tarefas." },
+      { error: "Falha ao limpar o checklist de hoje." },
       { status: 500 }
     );
   }

@@ -158,7 +158,17 @@ export default function Home() {
       const sharedState = await clearHistory();
       applySharedState(sharedState);
     } catch (error) {
-      reportMutationError("Não foi possível apagar o histórico agora.", error);
+      reportMutationError("Não foi possível limpar o checklist de hoje agora.", error);
+      throw error;
+    }
+  };
+
+  const handleClearTankHistory = async (tankId: string) => {
+    try {
+      const sharedState = await clearHistory(tankId);
+      applySharedState(sharedState);
+    } catch (error) {
+      reportMutationError("Não foi possível limpar os dados desse tanque agora.", error);
       throw error;
     }
   };
@@ -214,6 +224,7 @@ export default function Home() {
           <TanksView
             state={state}
             onCheck={handleCheck}
+            onClearTankHistory={handleClearTankHistory}
           />
         )}
         {activeTab === "history" && <HistoryView state={state} />}

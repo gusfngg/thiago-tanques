@@ -151,7 +151,16 @@ const updateTankStatement = database.prepare(`
   WHERE id = @id
 `);
 
-const clearEntriesStatement = database.prepare("DELETE FROM entries");
+const clearTodayEntriesStatement = database.prepare(`
+  DELETE FROM entries
+  WHERE completed_at LIKE @todayPrefix
+`);
+
+const clearTodayEntriesByTankStatement = database.prepare(`
+  DELETE FROM entries
+  WHERE tank_id = @tankId
+    AND completed_at LIKE @todayPrefix
+`);
 
 export function getSharedState(): SharedState {
   const users = selectUsersStatement.all() as User[];
@@ -235,8 +244,20 @@ export function saveTank(
   return getSharedState();
 }
 
-export function clearAllEntries(): SharedState {
-  clearEntriesStatement.run();
+export function clearTodayEntries(): SharedState {
+  const todayUtc = new Date().toISOString().split("T")[0];
+  clearTodayEntriesStatement.run({
+    todayPrefix: `${todayUtc}%`,
+  });
+  return getSharedState();
+}
+
+export function clearTodayEntriesByTank(tankId: string): SharedState {
+  const todayUtc = new Date().toISOString().split("T")[0];
+  clearTodayEntriesByTankStatement.run({
+    tankId,
+    todayPrefix: `${todayUtc}%`,
+  });
   return getSharedState();
 }
 

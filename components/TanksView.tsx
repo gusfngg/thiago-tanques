@@ -6,9 +6,10 @@ import { getTodayEntries } from "@/lib/store";
 interface Props {
   state: AppState;
   onCheck: (tankId: string, taskId: string, value?: string, notes?: string) => void;
+  onClearTankHistory: (tankId: string) => Promise<void>;
 }
 
-export default function TanksView({ state, onCheck }: Props) {
+export default function TanksView({ state, onCheck, onClearTankHistory }: Props) {
   const todayEntries = getTodayEntries(state.entries);
 
   // Filter entries for current user + tank
@@ -45,6 +46,7 @@ export default function TanksView({ state, onCheck }: Props) {
           tasks={state.tasks}
           entries={getEntriesForTank(tank.id)}
           onCheck={(taskId, value, notes) => onCheck(tank.id, taskId, value, notes)}
+          onClearHistory={() => onClearTankHistory(tank.id)}
         />
       ))}
 
