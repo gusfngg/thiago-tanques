@@ -20,7 +20,6 @@ import SettingsView from "@/components/SettingsView";
 
 type Tab = "tanks" | "history" | "report" | "settings";
 
-const ACTIVE_USER_STORAGE_KEY = "aqua_control_active_user";
 const SYNC_INTERVAL_MS = 2_000;
 
 export default function Home() {
@@ -30,7 +29,7 @@ export default function Home() {
 
   const applySharedState = useCallback((sharedState: SharedState) => {
     setState((currentState) => {
-      const activeUserId = currentState?.activeUserId ?? readStoredActiveUser();
+      const activeUserId = currentState?.activeUserId ?? null;
       return toAppState(sharedState, activeUserId);
     });
   }, []);
@@ -42,11 +41,11 @@ export default function Home() {
       try {
         const sharedState = await fetchSharedState();
         if (cancelled) return;
-        setState(toAppState(sharedState, readStoredActiveUser()));
+        setState(toAppState(sharedState, null));
       } catch (error) {
         console.error("Initial sync failed", error);
         if (cancelled) return;
-        setState(toAppState(getDefaultSharedState(), readStoredActiveUser()));
+        setState(toAppState(getDefaultSharedState(), null));
       } finally {
         if (!cancelled) {
           setMounted(true);
@@ -81,20 +80,12 @@ export default function Home() {
   }, [mounted, syncFromServer]);
 
   const handleLogin = (userId: UserId) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(ACTIVE_USER_STORAGE_KEY, userId);
-    }
-
     setState((currentState) =>
       currentState ? { ...currentState, activeUserId: userId } : currentState
     );
   };
 
   const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(ACTIVE_USER_STORAGE_KEY);
-    }
-
     setState((currentState) =>
       currentState ? { ...currentState, activeUserId: null } : currentState
     );
@@ -253,19 +244,6 @@ function toAppState(sharedState: SharedState, activeUserId: UserId | null): AppS
     ...sharedState,
     activeUserId,
   };
-}
-
-function readStoredActiveUser(): UserId | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  const raw = localStorage.getItem(ACTIVE_USER_STORAGE_KEY);
-  if (raw === "user1" || raw === "user2" || raw === "user3") {
-    return raw;
-  }
-
-  return null;
 }
 
 function reportMutationError(message: string, error: unknown): void {
