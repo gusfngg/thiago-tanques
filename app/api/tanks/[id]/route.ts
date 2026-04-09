@@ -33,7 +33,7 @@ export async function PUT(
       return Response.json({ error: "Litros deve ser maior que zero." }, { status: 400 });
     }
 
-    const state = saveTank(
+    const state = await saveTank(
       id,
       body.name.trim(),
       body.species.trim(),

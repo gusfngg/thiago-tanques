@@ -23,7 +23,7 @@ export async function PUT(
       return Response.json({ error: "Emoji é obrigatório." }, { status: 400 });
     }
 
-    const state = saveUser(id, body.name.trim(), body.emoji.trim());
+    const state = await saveUser(id, body.name.trim(), body.emoji.trim());
     return Response.json({ state });
   } catch (error) {
     console.error("PUT /api/users/[id] failed", error);

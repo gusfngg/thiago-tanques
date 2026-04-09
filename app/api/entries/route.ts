@@ -22,7 +22,7 @@ interface CreateEntryBody {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as CreateEntryBody;
-    const sharedState = getSharedState();
+    const sharedState = await getSharedState();
 
     if (typeof body.userId !== "string" || !body.userId) {
       return Response.json({ error: "userId é obrigatório." }, { status: 400 });
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         : {}),
     };
 
-    const state = saveEntry(entry);
+    const state = await saveEntry(entry);
     return Response.json({ state }, { status: 201 });
   } catch (error) {
     console.error("POST /api/entries failed", error);
@@ -81,16 +81,17 @@ export async function DELETE(request: Request) {
     const tankId = searchParams.get("tankId");
 
     if (tankId) {
-      const hasTank = getSharedState().tanks.some((tank) => tank.id === tankId);
+      const snapshot = await getSharedState();
+      const hasTank = snapshot.tanks.some((tank) => tank.id === tankId);
       if (!hasTank) {
         return Response.json({ error: "Tanque não encontrado." }, { status: 400 });
       }
 
-      const state = clearTodayEntriesByTank(tankId);
+      const state = await clearTodayEntriesByTank(tankId);
       return Response.json({ state });
     }
 
-    const state = clearTodayEntries();
+    const state = await clearTodayEntries();
     return Response.json({ state });
   } catch (error) {
     console.error("DELETE /api/entries failed", error);

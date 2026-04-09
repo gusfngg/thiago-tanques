@@ -5,7 +5,8 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    return Response.json({ state: getSharedState() });
+    const state = await getSharedState();
+    return Response.json({ state });
   } catch (error) {
     console.error("GET /api/state failed", error);
     return Response.json(
