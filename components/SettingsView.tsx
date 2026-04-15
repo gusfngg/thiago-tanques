@@ -155,7 +155,7 @@ export default function SettingsView({
         </div>
       </section>
 
-      <p className="text-center text-xs text-slate-300">AquaControl v1.0 · Feito com 🐠</p>
+      <p className="text-center text-xs text-slate-300">Thiago v1.0 · Feito com 🐠</p>
     </div>
   );
 }

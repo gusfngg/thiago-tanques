@@ -5,8 +5,14 @@ import { Pool } from "pg";
 import { DEFAULT_TANKS, DEFAULT_TASKS, DEFAULT_USERS } from "@/lib/defaults";
 import { CheckEntry, SharedState, Task, Tank, User } from "@/lib/types";
 
-const DATABASE_URL = process.env.DATABASE_URL?.trim();
+const DATABASE_URL = resolveDatabaseUrl();
 const USE_POSTGRES = Boolean(DATABASE_URL);
+
+if (!USE_POSTGRES && (process.env.VERCEL || process.env.NODE_ENV === "production")) {
+  console.warn(
+    "[thiago] No persistent Postgres URL found. Falling back to local SQLite, which is ephemeral in serverless production."
+  );
+}
 
 const database = createDatabase();
 
@@ -62,7 +68,7 @@ function createDatabase(): Database.Database {
     return new Database(resolvedPath);
   } catch (error) {
     console.error(
-      `[aqua-control] Failed to open SQLite at "${resolvedPath}". Falling back to in-memory database.`,
+      `[thiago] Failed to open SQLite at "${resolvedPath}". Falling back to in-memory database.`,
       error
     );
     return new Database(":memory:");
@@ -70,7 +76,7 @@ function createDatabase(): Database.Database {
 }
 
 function resolveDatabasePath(): string {
-  const configuredPath = process.env.AQUA_DB_PATH?.trim();
+  const configuredPath = process.env.THIAGO_DB_PATH?.trim() || process.env.AQUA_DB_PATH?.trim();
   if (configuredPath) {
     return configuredPath;
   }
@@ -78,10 +84,28 @@ function resolveDatabasePath(): string {
   const isVercel = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
   if (isVercel) {
     // Vercel runtime only allows writing under /tmp.
-    return path.join("/tmp", "aqua-control", "aqua-control.sqlite");
+    return path.join("/tmp", "thiago", "thiago.sqlite");
   }
 
-  return path.join(process.cwd(), "data", "aqua-control.sqlite");
+  return path.join(process.cwd(), "data", "thiago.sqlite");
+}
+
+function resolveDatabaseUrl(): string | undefined {
+  const candidates = [
+    process.env.DATABASE_URL,
+    process.env.POSTGRES_URL_NON_POOLING,
+    process.env.POSTGRES_URL,
+    process.env.POSTGRES_PRISMA_URL,
+  ];
+
+  for (const candidate of candidates) {
+    const value = candidate?.trim();
+    if (value) {
+      return value;
+    }
+  }
+
+  return undefined;
 }
 
 function ensureParentDirectory(databasePath: string): void {
@@ -93,20 +117,20 @@ function ensureParentDirectory(databasePath: string): void {
 }
 
 declare global {
-  var aquaControlPgPool: Pool | undefined;
-  var aquaControlPgInitPromise: Promise<void> | undefined;
+  var thiagoPgPool: Pool | undefined;
+  var thiagoPgInitPromise: Promise<void> | undefined;
 }
 
 const pgPool = USE_POSTGRES ? getPgPool() : null;
 
 function getPgPool(): Pool {
-  if (!globalThis.aquaControlPgPool) {
-    globalThis.aquaControlPgPool = new Pool({
+  if (!globalThis.thiagoPgPool) {
+    globalThis.thiagoPgPool = new Pool({
       connectionString: DATABASE_URL,
     });
   }
 
-  return globalThis.aquaControlPgPool;
+  return globalThis.thiagoPgPool;
 }
 
 async function ensurePostgresReady(): Promise<void> {
@@ -114,11 +138,11 @@ async function ensurePostgresReady(): Promise<void> {
     return;
   }
 
-  if (!globalThis.aquaControlPgInitPromise) {
-    globalThis.aquaControlPgInitPromise = initializePostgres(pgPool);
+  if (!globalThis.thiagoPgInitPromise) {
+    globalThis.thiagoPgInitPromise = initializePostgres(pgPool);
   }
 
-  await globalThis.aquaControlPgInitPromise;
+  await globalThis.thiagoPgInitPromise;
 }
 
 async function initializePostgres(pool: Pool): Promise<void> {

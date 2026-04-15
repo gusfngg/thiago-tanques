@@ -30,7 +30,7 @@ export function generateWhatsAppReport(state: AppState): string {
 
   const todayEntries = getTodayEntries(state.entries);
 
-  let msg = `🐠 *AquaControl - Relatório Diário*\n`;
+  let msg = `🐠 *Thiago - Relatório Diário*\n`;
   msg += `📅 ${dateStr}\n`;
   msg += `${"─".repeat(28)}\n\n`;
 
@@ -64,7 +64,7 @@ export function generateWhatsAppReport(state: AppState): string {
     }
   }
 
-  msg += `\n_Enviado via AquaControl_ 🐟`;
+  msg += `\n_Enviado via Thiago_ 🐟`;
 
   return msg;
 }

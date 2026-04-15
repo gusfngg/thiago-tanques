@@ -20,7 +20,7 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 ## Local database (SQLite)
 
-This app now persists shared task data in a local SQLite database at `data/aqua-control.sqlite` through Next.js Route Handlers (`app/api/*`).
+This app now persists shared task data in a local SQLite database at `data/thiago.sqlite` through Next.js Route Handlers (`app/api/*`).
 
 - Data is no longer kept only in the browser.
 - Multiple open clients stay almost in real-time sync with short polling.

@@ -12,7 +12,7 @@ export default function UserSelector({ users, onSelect }: Props) {
       {/* Logo area */}
       <div className="mb-10 text-center">
         <div className="text-6xl mb-4">🐠</div>
-        <h1 className="text-3xl font-bold text-slate-800 mb-1">AquaControl</h1>
+        <h1 className="text-3xl font-bold text-slate-800 mb-1">Thiago</h1>
         <p className="text-slate-500 text-sm">Quem está usando agora?</p>
       </div>
 
